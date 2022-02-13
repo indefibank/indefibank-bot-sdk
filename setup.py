@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name='velero-velero-bot-sdk',
-    version='0.62.3',
+    name='velero-bot-sdk',
+    version='0.63.3',
     packages=[
         'velero_bot_sdk',
     ],
