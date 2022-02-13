@@ -1,4 +1,4 @@
-# velero-velero-bot-sdk
+# velero-bot-sdk
 
 
 ## installation
