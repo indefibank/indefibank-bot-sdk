@@ -28,7 +28,6 @@ class BaseDssContractConnector(BaseContractConnector):
         address = contract if web3.Web3.isAddress(contract) else self.get_contact_address(contract)
         return super().get_contract(contract=address, abi_file_name=abi_file_name, _abi_dir=_abi_dir)
 
-    @error_handler
     def get_contact_address(self, name: str) -> ChecksumAddress:
         return web3.Web3.toChecksumAddress(self.chain_log.functions.getAddress(Converter.str_to_bytes32(name)).call())
 
@@ -117,7 +116,6 @@ class DssContractsConnector(BaseDssContractConnector):
             tuple(map(lambda x: (x, self.get_contact_address(f"MCD_CLIP_CALC_{x.replace('-', '_')}")), self.ilk_list))
         )
 
-    @error_handler
     def get_current_price(self, ilk: str) -> Decimal:
         spot = self.vat.caller.ilks(Converter.str_to_bytes32(ilk))[2]
         mat = self.spot.caller.ilks(Converter.str_to_bytes32(ilk))[1]

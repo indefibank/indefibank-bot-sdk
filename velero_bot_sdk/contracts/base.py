@@ -52,13 +52,11 @@ class BaseContractConnector:
         self.external_block_explorer = BlockScout(base_url=external_block_explorer_url) \
             if external_block_explorer_url is not None else None
 
-    @error_handler
     def get_abi(self, file_name: str, _dir: Path = None) -> Dict:
         _dir = _dir or self._abi_dir
         with (_dir / file_name).open() as file:
             return json.load(file)
 
-    @error_handler
     def get_contract(self, contract: str, abi_file_name: str, _abi_dir: Path = None) -> Contract:
         address = web3.Web3.toChecksumAddress(contract)
 
