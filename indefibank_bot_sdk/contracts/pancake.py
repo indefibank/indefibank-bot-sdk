@@ -6,11 +6,11 @@ import web3
 from eth_account.signers.local import LocalAccount
 from eth_typing import URI, ChecksumAddress
 
-from velero_bot_sdk.contracts.base import BaseContractConnector
-from velero_bot_sdk.contracts.utils import calc_perc
+from indefibank_bot_sdk.contracts.base import BaseContractConnector
+from indefibank_bot_sdk.contracts.utils import calc_perc
 
 
-class WagyuContractConnector(BaseContractConnector):
+class PancakeContractConnector(BaseContractConnector):
     _router_addr: ChecksumAddress
     _multicall_addr: ChecksumAddress
 

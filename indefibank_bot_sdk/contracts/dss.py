@@ -7,8 +7,8 @@ from eth_account.signers.local import LocalAccount
 from eth_typing import URI, ChecksumAddress
 from web3.contract import Contract
 
-from velero_bot_sdk.contracts.base import BaseContractConnector, error_handler
-from velero_bot_sdk.contracts.utils import Converter
+from indefibank_bot_sdk.contracts.base import BaseContractConnector
+from indefibank_bot_sdk.contracts.utils import Converter
 
 
 class BaseDssContractConnector(BaseContractConnector):
@@ -16,20 +16,23 @@ class BaseDssContractConnector(BaseContractConnector):
     _ilk_registry_addr: str
 
     def __init__(self, http_rpc_url: URI, abi_dir: Path, chain_log_addr: str,
-                 external_block_explorer_url: str = None, rpc_timeout: int = 60, account: LocalAccount = None):
+                 external_block_explorer_api_key: str = None,
+                 external_block_explorer_url: str = None,
+                 rpc_timeout: int = 60, account: LocalAccount = None):
         super().__init__(http_rpc_url=http_rpc_url, abi_dir=abi_dir, rpc_timeout=rpc_timeout,
-                         external_block_explorer_url=external_block_explorer_url, account=account)
+                         external_block_explorer_url=external_block_explorer_url, account=account,
+                         external_block_explorer_api_key=external_block_explorer_api_key)
         self._chain_log_addr = chain_log_addr
         self._ilk_registry_addr = self.get_contact_address("ILK_REGISTRY")
 
         self.ilk_list = list(map(lambda x: Converter.bytes32_to_str(x), self.ilk_registry.caller.list()))
 
     def get_contract(self, contract: str, abi_file_name: str, _abi_dir: Path = None) -> Contract:
-        address = contract if web3.Web3.isAddress(contract) else self.get_contact_address(contract)
+        address = contract if web3.Web3.is_address(contract) else self.get_contact_address(contract)
         return super().get_contract(contract=address, abi_file_name=abi_file_name, _abi_dir=_abi_dir)
 
     def get_contact_address(self, name: str) -> ChecksumAddress:
-        return web3.Web3.toChecksumAddress(self.chain_log.functions.getAddress(Converter.str_to_bytes32(name)).call())
+        return web3.Web3.to_checksum_address(self.chain_log.functions.getAddress(Converter.str_to_bytes32(name)).call())
 
     @property
     def chain_log(self) -> Contract:
@@ -53,15 +56,15 @@ class DssContractsConnector(BaseDssContractConnector):
     _mcd_iou_addr: str
     _chief_addr: str
     _jug_addr: str
-    _join_main_stable_addr: str
+    _join_stbl_addr: str
     _flap_addr: str
     _flop_addr: str
     _flash_addr: str
     _vote_proxy_factory_addr: str
     _vote_delegate_proxy_factory_addr: str
     _get_cdps_addr: str
-    _vlx_addr: str
-    _usdv_addr: str
+    _coin_addr: str
+    _stbl_addr: str
 
     _osm_addresses: Dict[str, str]
     _ilk_join_addresses: Dict[str, str]
@@ -69,9 +72,12 @@ class DssContractsConnector(BaseDssContractConnector):
     _ilk_clip_calc_addresses: Dict[str, str]
 
     def __init__(self, http_rpc_url: URI, abi_dir: Path, chain_log_addr: str,
-                 external_block_explorer_url: str = None, rpc_timeout: int = 60, account: LocalAccount = None):
+                 external_block_explorer_api_key: str = None,
+                 external_block_explorer_url: str = None,
+                 rpc_timeout: int = 60, account: LocalAccount = None):
         super().__init__(http_rpc_url=http_rpc_url, abi_dir=abi_dir, rpc_timeout=rpc_timeout, account=account,
-                         chain_log_addr=chain_log_addr, external_block_explorer_url=external_block_explorer_url)
+                         chain_log_addr=chain_log_addr, external_block_explorer_url=external_block_explorer_url,
+                         external_block_explorer_api_key=external_block_explorer_api_key)
 
         self.load_dss()
 
@@ -90,12 +96,12 @@ class DssContractsConnector(BaseDssContractConnector):
         self._mcd_iou_addr = self.get_contact_address("MCD_IOU")
         self._chief_addr = self.get_contact_address("MCD_ADM")
         self._jug_addr = self.get_contact_address("MCD_JUG")
-        self._join_main_stable_addr = self.get_contact_address("MCD_JOIN_USDV")
+        self._join_stbl_addr = self.get_contact_address("MCD_JOIN_STBL")
         self._flap_addr = self.get_contact_address("MCD_FLAP")
-        self._flap_addr = self.get_contact_address("MCD_FLOP")
+        self._flop_addr = self.get_contact_address("MCD_FLOP")
         self._flash_addr = self.get_contact_address("MCD_FLASH")
-        self._vlx_addr = self.get_contact_address("VLX")
-        self._usdv_addr = self.get_contact_address("MCD_USDV")
+        self._coin_addr = self.get_contact_address("MATIC")
+        self._stbl_addr = self.get_contact_address("MCD_STBL")
         self._vote_proxy_factory_addr = self.get_contact_address("VOTE_PROXY_FACTORY")
         self._vote_delegate_proxy_factory_addr = self.get_contact_address("VOTE_DELEGATE_PROXY_FACTORY")
         self._get_cdps_addr = self.get_contact_address("GET_CDPS")
@@ -158,8 +164,8 @@ class DssContractsConnector(BaseDssContractConnector):
         return self.get_contract(contract=self._jug_addr, abi_file_name="Jug.abi")
 
     @property
-    def join_main_stablecoin(self) -> Contract:
-        return self.get_contract(contract=self._join_main_stable_addr, abi_file_name="UsdvJoin.abi")
+    def join_stbl(self) -> Contract:
+        return self.get_contract(contract=self._join_stbl_addr, abi_file_name="UsdvJoin.abi")
 
     @property
     def gov_token(self) -> Contract:
@@ -186,12 +192,12 @@ class DssContractsConnector(BaseDssContractConnector):
         return self.get_contract(contract=self._flash_addr, abi_file_name="Flash.abi")
 
     @property
-    def vlx(self) -> Contract:
-        return self.get_contract(contract=self._vlx_addr, abi_file_name="VLX.abi")
+    def coin(self) -> Contract:
+        return self.get_contract(contract=self._coin_addr, abi_file_name="Coin.abi")
 
     @property
-    def usdv(self) -> Contract:
-        return self.get_contract(contract=self._usdv_addr, abi_file_name="USDV.abi")
+    def stbl(self) -> Contract:
+        return self.get_contract(contract=self._stbl_addr, abi_file_name="StableCoin.abi")
 
     @property
     def getcdps(self) -> Contract:
@@ -209,6 +215,10 @@ class DssContractsConnector(BaseDssContractConnector):
     def get_ilk_osm(self, ilk: str) -> Contract:
         return self.get_contract(contract=self._osm_addresses[ilk], abi_file_name="OSM.abi")
 
+    def get_ilk_median(self, ilk: str) -> Contract:
+        median_address = self.get_ilk_osm(ilk=ilk).caller.src()
+        return self.get_contract(contract=median_address, abi_file_name="Median.abi")
+
     def get_ilk_join(self, ilk: str) -> Contract:
         return self.get_contract(contract=self._ilk_join_addresses[ilk], abi_file_name="GemJoin.abi")
 
@@ -220,3 +230,6 @@ class DssContractsConnector(BaseDssContractConnector):
 
     def get_ds_proxy(self, address: str) -> Contract:
         return self.get_contract(contract=address, abi_file_name="DSProxy.abi")
+
+    def get_ds_value(self, address: str) -> Contract:
+        return self.get_contract(contract=address, abi_file_name="DSValue.abi")
