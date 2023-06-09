@@ -1,4 +1,4 @@
-# velero-bot-sdk
+# indefibank-bot-sdk
 
 
 ## installation
