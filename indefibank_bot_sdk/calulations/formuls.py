@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 
-class VeleroFormuls:
+class IndefibankFormuls:
     @staticmethod
     def get_liquidity(price, collateral, debt_currency):
         """
